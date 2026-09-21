@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>THM Reviewer — Weeks 1-5</title>
+<style>
+  :root {
+    --navy: #16345C;
+    --navy-dark: #0E2440;
+    --gold: #F4B942;
+    --gold-dark: #DE9F1F;
+    --bg: #F5F7FA;
+    --card-bg: #FFFFFF;
+    --text: #1B2430;
+    --text-soft: #55606E;
+    --border: #E1E6ED;
+    --correct: #1E8E5A;
+    --wrong: #C4432B;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #10151C;
+      --card-bg: #1A222E;
+      --text: #EDEFF2;
+      --text-soft: #A6B0BD;
+      --border: #2B3646;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #10151C;
+    --card-bg: #1A222E;
+    --text: #EDEFF2;
+    --text-soft: #A6B0BD;
+    --border: #2B3646;
+  }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); height: 100%; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px 48px;
+  }
+
+  header {
+    width: 100%;
+    max-width: 760px;
+    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-dark) 100%);
+    border-radius: 18px;
+    padding: 22px 24px;
+    color: white;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 18px;
+  }
+  header::after {
+    content: "";
+    position: absolute;
+    top: -20px; right: -20px;
+    width: 140px; height: 140px;
+    background: var(--gold);
+    clip-path: polygon(60% 0, 100% 0, 40% 100%, 0 100%);
+    opacity: 0.9;
+  }
+  header h1 {
+    margin: 0 0 4px;
+    font-size: 1.5rem;
+    position: relative;
+    z-index: 1;
+  }
+  header p {
+    margin: 0;
+    font-size: 0.92rem;
+    color: #D9E2EE;
+    position: relative;
+    z-index: 1;
+    max-width: 80%;
+  }
+
+  .container { width: 100%; max-width: 760px; }
+
+  .tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .tab-btn {
+    flex: 1;
+    min-width: 120px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--card-bg);
+    color: var(--text);
+    font-weight: 600;
+    font-size: 0.88rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .tab-btn.active {
+    background: var(--navy);
+    color: white;
+    border-color: var(--navy);
+  }
+
+  .filter-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .filter-chip {
+    padding: 6px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--card-bg);
+    color: var(--text-soft);
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .filter-chip.active {
+    background: var(--gold);
+    border-color: var(--gold-dark);
+    color: var(--navy-dark);
+  }
+
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* Quiz styles */
+  .progress-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    font-size: 0.85rem;
+    color: var(--text-soft);
+  }
+  .progress-bar {
+    height: 6px;
+    background: var(--border);
+    border-radius: 999px;
+    overflow: hidden;
+    margin-bottom: 18px;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--gold);
+    transition: width 0.3s ease;
+  }
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 22px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+  }
+  .q-topic {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--navy);
+    background: #EAF0F8;
+    padding: 3px 10px;
+    border-radius: 999px;
+    margin-bottom: 10px;
+  }
+  :root[data-theme="dark"] .q-topic,
+  @media (prefers-color-scheme: dark) { }
+  .q-prompt { font-size: 1.08rem; font-weight: 600; margin: 0 0 16px; line-height: 1.45; }
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .option-btn {
+    text-align: left;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1.5px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .option-btn:hover:not(:disabled) { border-color: var(--gold-dark); }
+  .option-btn.correct { border-color: var(--correct); background: rgba(30,142,90,0.12); }
+  .option-btn.wrong { border-color: var(--wrong); background: rgba(196,67,43,0.12); }
+  .option-btn:disabled { cursor: default; opacity: 0.9; }
+
+  .feedback {
+    margin-top: 16px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: var(--bg);
+    border-left: 4px solid var(--gold);
+    font-size: 0.9rem;
+    line-height: 1.5;
+    display: none;
+  }
+  .feedback.show { display: block; }
+  .feedback b.verdict-correct { color: var(--correct); }
+  .feedback b.verdict-wrong { color: var(--wrong); }
+
+  .nav-row {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 18px;
+    gap: 10px;
+  }
+  .nav-btn {
+    padding: 11px 20px;
+    border-radius: 12px;
+    border: none;
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+  }
+  .nav-btn.primary { background: var(--navy); color: white; }
+  .nav-btn.primary:disabled { background: #9AA7B8; cursor: not-allowed; }
+  .nav-btn.ghost { background: transparent; color: var(--text-soft); border: 1px solid var(--border); }
+
+  .result-card { text-align: center; padding: 40px 24px; }
+  .result-score { font-size: 2.6rem; font-weight: 800; color: var(--navy); }
+  :root[data-theme="dark"] .result-score { color: var(--gold); }
+  .result-sub { color: var(--text-soft); margin: 6px 0 22px; }
+
+  /* Flashcards */
+  .flash-wrap { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+  .flashcard {
+    width: 100%;
+    max-width: 560px;
+    height: 260px;
+    perspective: 1200px;
+    cursor: pointer;
+  }
+  .flashcard-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.5s;
+    transform-style: preserve-3d;
+  }
+  .flashcard.flipped .flashcard-inner { transform: rotateY(180deg); }
+  .flashcard-face {
+    position: absolute;
+    inset: 0;
+    backface-visibility: hidden;
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 26px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    line-height: 1.5;
+    border: 1px solid var(--border);
+  }
+  .flashcard-front { background: var(--card-bg); color: var(--text); }
+  .flashcard-back {
+    background: var(--navy);
+    color: white;
+    transform: rotateY(180deg);
+    font-size: 0.98rem;
+    font-weight: 500;
+  }
+  .flash-hint { font-size: 0.78rem; color: var(--text-soft); }
+  .flash-controls { display: flex; gap: 10px; align-items: center; }
+  .flash-count { font-size: 0.85rem; color: var(--text-soft); min-width: 60px; text-align: center; }
+
+  .theme-toggle {
+    position: fixed;
+    top: calc(14px + env(safe-area-inset-top, 0px));
+    right: 14px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    width: 38px; height: 38px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    font-size: 1rem;
+    z-index: 10;
+  }
+
+  @media (max-width: 480px) {
+    header p { max-width: 100%; }
+    .flashcard { height: 300px; }
+  }
+</style>
+</head>
+<body>
+
+<button class="theme-toggle" id="themeToggle" title="Toggle theme">🌙</button>
+
+<header>
+  <h1>Tourism &amp; Hospitality Management</h1>
+  <p>Reviewer for Weeks 1–5 · Foundations, Demand &amp; Supply, Public Sector &amp; Transportation</p>
+</header>
+
+<div class="container">
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="quiz">📝 Quiz Mode</button>
+    <button class="tab-btn" data-tab="flash">🗂️ Flashcards</button>
+  </div>
+
+  <div class="filter-row" id="filterRow"></div>
+
+  <div class="panel active" id="quizPanel">
+    <div class="progress-row">
+      <span id="progressLabel">Question 1 of 1</span>
+      <span id="scoreLabel">Score: 0</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+
+    <div id="quizArea"></div>
+  </div>
+
+  <div class="panel" id="flashPanel">
+    <div class="flash-wrap">
+      <div class="flashcard" id="flashcard">
+        <div class="flashcard-inner">
+          <div class="flashcard-face flashcard-front" id="flashFront"></div>
+          <div class="flashcard-face flashcard-back" id="flashBack"></div>
+        </div>
+      </div>
+      <div class="flash-hint">Tap the card to flip</div>
+      <div class="flash-controls">
+        <button class="nav-btn ghost" id="flashPrev">← Prev</button>
+        <span class="flash-count" id="flashCount">1 / 1</span>
+        <button class="nav-btn ghost" id="flashNext">Next →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const DATA = [
+  // ---- WEEK 1: Historical Foundations ----
+  {topic:"Week 1", q:"According to the reviewer, what does the historical evolution of travel primarily disprove?", opts:["That tourism is only a 20th-century phenomenon","That travel began with the airplane","That hospitality started in Europe","That the Roman Empire never built roads"], a:0, exp:"Travel is one of humanity's oldest social and economic endeavors, not a purely modern invention.", card:{f:"Common misconception about tourism's origins?", b:"That it's merely a modern, 20th-century phenomenon for leisure and photography — travel is actually one of humanity's oldest endeavors."}},
+  {topic:"Week 1", q:"What two Sumerian-era inventions (c. 4000 BCE) gave rise to commercial travel?", opts:["The wheel and money","The compass and the map","The sail and the oar","Writing and the calendar"], a:0, exp:"The invention of money and the wheel facilitated long-distance trade, effectively giving rise to commercial travel.", card:{f:"Sumerian Empire (c. 4000 BCE) innovations that sparked commercial travel?", b:"The invention of money and the wheel."}},
+  {topic:"Week 1", q:"What were the Roman viae primarily built for?", opts:["Military and administrative efficiency","Tourist sightseeing","Religious pilgrimages only","Agricultural transport"], a:0, exp:"The Romans built over 80,000 km of paved highways (viae), primarily for military and administrative efficiency.", card:{f:"What was the Roman cursus publicus?", b:"The official transport system supporting the vast network of Roman roads (viae)."}},
+  {topic:"Week 1", q:"What were 'mansiones' in the Roman travel system?", opts:["Inns located along imperial roads","Roman senators' villas","Public bathhouses","Military watchtowers"], a:0, exp:"Mansiones were inns strategically located along imperial roads, establishing early principles of highway lodging.", card:{f:"Mansiones", b:"Inns strategically placed along Roman imperial roads — early highway lodging and guest services."}},
+  {topic:"Week 1", q:"During the Middle Ages and Renaissance, what were the primary drivers of travel?", opts:["Religious pilgrimages, trade fairs, and diplomatic missions","Leisure cruises","Air travel","Social media tourism"], a:0, exp:"Travel shifted toward religious pilgrimages, bustling trade fairs, and diplomatic missions, supported by hospices and monastic lodging networks.", card:{f:"Medieval & Renaissance travel drivers?", b:"Religious pilgrimages, trade fairs, and diplomatic missions — supported by hospices, monastic lodging, and merchant guilds."}},
+  {topic:"Week 1", q:"The Grand Tour (16th–19th centuries) was primarily undertaken by whom, and for what purpose?", opts:["Young European aristocrats, for education and cultural enrichment","Working-class families, for vacation","Merchants, for trade deals","Soldiers, for training"], a:0, exp:"Young European aristocrats took multi-year journeys across Europe (notably France and Italy) for education, social prestige, and cultural enrichment.", card:{f:"The Grand Tour's operational legacy?", b:"Codified professional travel guides, international banking (letters of credit), and high-end hotel services for affluent long-stay guests."}},
+  {topic:"Week 1", q:"Who organized the 1841 train excursion considered the genesis of mass/packaged tourism?", opts:["Thomas Cook","Jan Carlzon","Marco Polo","Conrad Hilton"], a:0, exp:"Thomas Cook organized a landmark train excursion for 540 temperance campaigners from Leicester to Loughborough, introducing the packaged tour concept.", card:{f:"Thomas Cook's 1841 milestone", b:"Organized a packaged train excursion for 540 temperance campaigners from Leicester to Loughborough with negotiated group rates."}},
+  {topic:"Week 1", q:"In the Intramuros, Manila case study, what is the key operational lesson?", opts:["Synchronizing accommodation, transport, and tour-guiding while balancing commercialization with heritage protection","Tourism sites should be closed to preserve history","Modern tourism has no link to colonial history","Heritage sites cannot support boutique hotels"], a:0, exp:"Intramuros shows the necessity for synchronized accommodation, transport, and tour-guiding operations while balancing commercialization with cultural heritage protection.", card:{f:"Intramuros, Manila — modern transformation?", b:"From a strictly regulated Spanish colonial fortress into a heritage site integrating guided tours, boutique hotels, and cultural events."}},
+
+  // ---- WEEK 2: Demand Mechanics ----
+  {topic:"Week 2", q:"Which of the 'Five Layers of Tourism Demand' refers to people currently traveling and using hospitality services?", opts:["Effective demand","Suppressed demand","Deferred demand","Potential demand"], a:0, exp:"Effective demand represents the number of people currently traveling and utilizing hospitality services at a given destination.", card:{f:"Effective demand", b:"The number of people currently traveling and using hospitality services at a destination."}},
+  {topic:"Week 2", q:"Which layer of tourism demand describes people who do NOT travel due to specific obstacles (e.g., visa issues, cost)?", opts:["Suppressed demand","Effective demand","No demand","Deferred demand"], a:0, exp:"Suppressed demand includes population segments that do not travel due to specific obstacles.", card:{f:"Suppressed demand", b:"Population segments that don't travel because of specific obstacles (cost, visas, etc.)."}},
+  {topic:"Week 2", q:"Demand postponed due to temporary supply constraints, personal schedules, or economic factors is called:", opts:["Deferred demand","Potential demand","No demand","Effective demand"], a:0, exp:"Deferred demand is demand postponed due to temporary supply constraints, personal schedules, or economic factors.", card:{f:"Deferred demand", b:"Demand postponed due to temporary supply constraints, personal schedules, or economic factors."}},
+  {topic:"Week 2", q:"Individuals who will travel once their socioeconomic circumstances change represent:", opts:["Potential demand","No demand","Suppressed demand","Effective demand"], a:0, exp:"Potential demand consists of individuals who will travel if their socioeconomic circumstances change.", card:{f:"Potential demand", b:"Individuals who will travel if their socioeconomic circumstances change."}},
+  {topic:"Week 2", q:"In the Push vs. Pull Model, 'need for stress relief' and 'desire for social status' are examples of:", opts:["Push factors (origin drivers)","Pull factors (destination drivers)","Elastic demand","Inelastic demand"], a:0, exp:"Push factors are internal, psychological motivations that propel a person away from their home environment.", card:{f:"Push factors (Push vs. Pull Model)", b:"Internal, psychological motivations — e.g., stress relief, social status, escaping cold weather, family bonding."}},
+  {topic:"Week 2", q:"Pristine beaches, Michelin-starred dining, and competitive room rates are examples of which factor type?", opts:["Pull factors (destination drivers)","Push factors (origin drivers)","Suppressed demand","Deferred demand"], a:0, exp:"Pull factors are external attractions that draw a consumer toward a specific business or location.", card:{f:"Pull factors (Push vs. Pull Model)", b:"External attractions that draw a consumer toward a destination — beaches, dining, heritage sites, competitive rates."}},
+  {topic:"Week 2", q:"Budget airline tickets and weekend getaways are examples of which type of demand?", opts:["Elastic demand","Inelastic demand","Deferred demand","No demand"], a:0, exp:"Elastic demand: customers are highly price-sensitive; a small price hike drives them to competitors.", card:{f:"Elastic demand — example", b:"Budget airline tickets, weekend leisure getaways, fast-food dining — highly price sensitive."}},
+  {topic:"Week 2", q:"Corporate business travel and ultra-luxury resorts typically exhibit which kind of demand?", opts:["Inelastic demand","Elastic demand","Suppressed demand","Potential demand"], a:0, exp:"Inelastic demand: demand stays steady despite price increases because the service is necessary or prestigious.", card:{f:"Inelastic demand — example", b:"Corporate business travel, emergency travel, ultra-luxury resorts — demand stays steady despite price hikes."}},
+
+  // ---- WEEK 3: Supply Dynamics & Customer Journey ----
+  {topic:"Week 3", q:"In the '5 A's' of destination supply, which element refers to airports, highways, and logistics enabling navigation?", opts:["Accessibility","Attractions","Amenities","Activities and Ancillary Services"], a:0, exp:"Accessibility covers vital physical transportation infrastructure — airports, highways, and logistics.", card:{f:"The 5 A's of destination supply mix", b:"Attractions, Accessibility, Accommodations, Amenities, and Activities & Ancillary Services."}},
+  {topic:"Week 3", q:"Which 5 A's element covers food & beverage outlets, retail centers, and health services?", opts:["Amenities","Attractions","Accessibility","Accommodations"], a:0, exp:"Amenities are the core support infrastructure necessary for a comfortable stay.", card:{f:"Amenities (5 A's)", b:"Core support infrastructure for a comfortable stay — F&B outlets, retail, health services."}},
+  {topic:"Week 3", q:"Why is tourism supply described as 'inelastic in the short run'?", opts:["Hotel rooms and aircraft capacity can't be expanded overnight","Prices never change","Tourists have unlimited demand","Governments ban new hotel construction"], a:0, exp:"Hotel rooms and aircraft capacity cannot be expanded overnight — building new infrastructure takes years.", card:{f:"Perishability as a supply constraint", b:"Unsold capacity (an empty flight seat, unbooked hotel room) expires and that revenue opportunity is permanently lost."}},
+  {topic:"Week 3", q:"A resort in Palawan being unable to relocate to Manila to meet demand illustrates which supply constraint?", opts:["Rigid location","Perishability","Inflexibility of pricing","Elastic demand"], a:0, exp:"Rigid location: a resort's fixed location means it can't shift to meet demand elsewhere.", card:{f:"Rigid Location constraint — example", b:"A resort in Palawan cannot physically relocate to Manila to meet shifting off-peak demand."}},
+  {topic:"Week 3", q:"Who coined the 'Moments of Truth' concept in service management?", opts:["Jan Carlzon","Thomas Cook","Conrad Hilton","Walt Disney"], a:0, exp:"Jan Carlzon, former CEO of SAS Group, defined a Moment of Truth as any instance a customer forms an impression of a business.", card:{f:"Jan Carlzon's 'Moment of Truth'", b:"Any instance where a customer interacts with a business and forms an impression."}},
+  {topic:"Week 3", q:"Which stage of the '5 Stages of Travel' customer journey involves comparing options and checking logistics?", opts:["Planning","Dreaming","Booking","Sharing"], a:0, exp:"Planning involves comparing options and checking logistics, requiring easy-to-navigate websites and transparent pricing.", card:{f:"5 Stages of Travel", b:"Dreaming → Planning → Booking → Experiencing → Sharing."}},
+  {topic:"Week 3", q:"The 'Sharing' stage of the customer journey focuses operationally on:", opts:["Follow-up emails, review management, and loyalty programs","Secure payment gateways","Front desk efficiency","Destination marketing"], a:0, exp:"Sharing includes post-trip reviews and social media, with operational focus on follow-up emails, review management, and loyalty enrollment.", card:{f:"The 'continuous loop' concept in tourist experience", b:"The tourist experience doesn't end at checkout — it's a continuous loop from dreaming to sharing, requiring planning before and after the stay."}},
+  {topic:"Week 3", q:"In the TikTok Demand Shock case, which two operational areas needed immediate real-time adaptation?", opts:["Front desk queue management and F&B supply chain","Marketing budget and HR hiring","Airport security and customs","Government visa policy"], a:0, exp:"Front desk queue management and F&B supply chain adaptability were the critical operational responses to the sudden viral surge.", card:{f:"TikTok Demand Shock scenario", b:"A viral post causes a sudden guest surge — resorts must manage front desk queues and adapt F&B supply chains in real time."}},
+  {topic:"Week 3", q:"The Filipino value highlighted as foundational to sustainable, well-managed hospitality operations is:", opts:["Malasakit","Bayanihan","Pakikisama","Utang na loob"], a:0, exp:"Profound Malasakit for colleagues and local staff — ensuring they aren't overwhelmed by poorly managed supply and demand — is framed as a true foundation of hospitality management.", card:{f:"Malasakit in hospitality management", b:"Genuine care/concern for colleagues and local staff, shown through well-planned operations that avoid overwhelming them."}},
+
+  // ---- WEEK 4-5: Public Sector & Transportation ----
+  {topic:"Week 4-5", q:"What is the common misconception about tourism transportation that this module corrects?", opts:["That it's merely a background utility to move tourists from Point A to B","That transportation is too expensive","That airlines don't need regulation","That tourists never use public transit"], a:0, exp:"In reality, transportation is a dynamic, highly regulated supply chain that dictates destination accessibility, tourist volume, and economic viability.", card:{f:"Reality of tourism transportation (not just a utility)", b:"It's a dynamic, highly regulated supply chain dictating destination accessibility, tourist volume, and economic viability."}},
+  {topic:"Week 4-5", q:"In Transport Supply Chain Dynamics, private airlines' 'private operations' focus mainly on:", opts:["Yield management and turnaround times","Bilateral air freedom agreements","Port authority regulations","Highway franchise issuance"], a:0, exp:"Private airlines focus on yield management and turnaround times, while governments manage bilateral air freedom agreements and terminal expansion.", card:{f:"Aviation: Public Policy vs. Private Operations", b:"Public: bilateral air freedom agreements, terminal expansion. Private: yield management, turnaround times."}},
+  {topic:"Week 4-5", q:"For the maritime sector, what do private cruise operators typically manage?", opts:["Cruise itinerary planning and onboard hospitality logistics","Port authority regulations","State highway maintenance","Visa facilitation"], a:0, exp:"Private cruise itinerary planning and onboard hospitality logistics are managed privately, while public port authority regulations govern cruise operations.", card:{f:"Maritime: Public Policy vs. Private Operations", b:"Public: port authority regulations. Private: cruise itinerary planning and onboard hospitality logistics."}},
+  {topic:"Week 4-5", q:"For roadways, what do private operators typically manage?", opts:["Fleet maintenance and localized 'last-mile' guest transfers","State highway maintenance","Franchise issuances","Bilateral air agreements"], a:0, exp:"Private operators manage fleet maintenance and localized last-mile guest transfers, while the state handles highway maintenance and franchise issuances.", card:{f:"Roadways: Public Policy vs. Private Operations", b:"Public: state highway maintenance, franchise issuances. Private: fleet maintenance, last-mile guest transfers."}},
+  {topic:"Week 4-5", q:"Which of the following is NOT one of the government's three roles in tourism described in the module?", opts:["Menu curator","Infrastructure developer","Regulatory overseer","Macro-facilitator"], a:0, exp:"The government's dual/triple role is Infrastructure Development, Regulatory Oversight, and Macro-Facilitation — not menu curation.", card:{f:"Government's roles in tourism", b:"Infrastructure Development (builds gateways), Regulatory Oversight (visas, tax incentives, safety), and Macro-Facilitation (enables micro-level businesses to thrive)."}},
+  {topic:"Week 4-5", q:"Late 20th-century aviation deregulation directly led to the creation of:", opts:["Low-Cost Carriers (LCCs)","Cruise ships","High-speed rail","Ride-hailing apps"], a:0, exp:"Deregulation led to Low-Cost Carriers, which democratized travel and made secondary destinations more accessible.", card:{f:"Aviation deregulation's impact", b:"Created Low-Cost Carriers (LCCs), democratizing travel and revolutionizing micro-tourism by making secondary destinations accessible."}},
+  {topic:"Week 4-5", q:"The maritime cruise industry is described as operating unique 'floating resorts' because it:", opts:["Seamlessly merges transportation, accommodation, and F&B into one workflow","Only offers transportation services","Requires no accommodation planning","Excludes food services"], a:0, exp:"Cruises merge transportation, accommodation, and food and beverage services into a single operational workflow.", card:{f:"'Floating resorts' (cruise industry)", b:"Seamlessly merge transportation, accommodation, and F&B services into one operational workflow."}},
+  {topic:"Week 4-5", q:"What is Intermodal Transportation?", opts:["Utilizing two or more modes of transit to complete a single journey","Traveling only by air","A single-mode transport system","A type of hotel loyalty program"], a:0, exp:"Intermodal Transportation utilizes two or more modes of transit to complete a journey, requiring seamless ticketing and scheduling coordination.", card:{f:"Intermodal Transportation", b:"Using two or more modes of transit to complete one journey — requires seamless ticketing, baggage transfers, and scheduling coordination."}},
+  {topic:"Week 4-5", q:"The 'Logistical Gap Warning' example (flight lands 2 AM, transit starts 5 AM) illustrates:", opts:["A supply chain fracture from misaligned intermodal schedules","A successful intermodal transfer","Why airports should close at night","Why cruises are more efficient than flights"], a:0, exp:"Disconnects occur when intermodal schedules are misaligned, leading to passenger delays and a supply chain fracture.", card:{f:"The Logistical Gap Warning", b:"If a flight arrives at 2 AM but local transit doesn't start until 5 AM, a significant supply chain fracture occurs."}},
+  {topic:"Week 4-5", q:"In the Transit Network Analysis case, what causes the severe 'last-mile bottleneck'?", opts:["A disruption in a minor node, like a localized tricycle strike","A global airline strike","A visa policy change","A currency devaluation"], a:0, exp:"A disruption in a minor node — such as a localized tricycle strike — creates a severe last-mile bottleneck, showing macro-infrastructure depends on reliable micro-level transit.", card:{f:"Key lesson from the Last-Mile Dependency case", b:"Macro-level infrastructure investments are entirely dependent on the reliability of micro-level local transit for successful guest movement."}},
+  {topic:"Week 4-5", q:"Which of these is one of the three pillars of Operational Decisions & Sustainability in tourism transport?", opts:["Cultural & Heritage Safeguarding","Aggressive overbooking","Currency arbitrage","Visa-free expansion"], a:0, exp:"The three pillars are Eco-Conscious Mobility, Carbon Footprint Reduction, and Cultural & Heritage Safeguarding.", card:{f:"Sustainability pillars in tourism transport", b:"Eco-Conscious Mobility, Carbon Footprint Reduction, and Cultural & Heritage Safeguarding."}},
+
+  // ---- ADDITIONAL COVERAGE: Week 1-3 ----
+  {topic:"Week 2", q:"Which of the Five Layers of Tourism Demand refers to individuals who completely lack the interest or capability to travel?", opts:["No Demand","Suppressed demand","Deferred demand","Effective demand"], a:0, exp:"No Demand refers to individuals who completely lack either the interest or the capability to travel.", card:{f:"No Demand (Five Layers of Tourism Demand)", b:"Individuals who completely lack either the interest or the capability to travel."}},
+  {topic:"Week 3", q:"How is tourism supply formally defined at the micro level?", opts:["The total combined output of goods, services, and experiences made available to visitors","The number of tourists arriving per year","The price charged for a hotel room","The marketing budget of a destination"], a:0, exp:"Tourism supply is the total combined output of goods, services, and experiences made available to visitors at a destination — a complex, interconnected network rather than a single product.", card:{f:"Micro-Level Tourism Supply, defined", b:"The total combined output of goods, services, and experiences made available to visitors at a destination."}},
+  {topic:"Week 3", q:"In the '5 A's' framework, which element covers natural features like beaches, cultural elements like festivals, and man-made sites like theme parks?", opts:["Attractions","Accessibility","Accommodations","Amenities"], a:0, exp:"Attractions are the core generators of initial interest — natural, cultural, or man-made.", card:{f:"Attractions (5 A's)", b:"Core generators of initial interest — natural features (beaches), cultural elements (festivals), or man-made sites (theme parks)."}},
+  {topic:"Week 3", q:"Which '5 A's' element refers to establishments providing lodging and guest services, like hotels and resorts?", opts:["Accommodations","Attractions","Activities and Ancillary Services","Accessibility"], a:0, exp:"Accommodations are establishments providing lodging and guest services, such as hotels and resorts.", card:{f:"Accommodations (5 A's)", b:"Establishments providing lodging and guest services, such as hotels and resorts."}},
+  {topic:"Week 3", q:"Tour operations, local guide services, and visitor information centers fall under which '5 A's' element?", opts:["Activities and Ancillary Services","Amenities","Attractions","Accessibility"], a:0, exp:"Activities and Ancillary Services covers organized recreational activities, tour operations, local guide services, and visitor information centers.", card:{f:"Activities and Ancillary Services (5 A's)", b:"Organized recreational activities, tour operations, local guide services, and visitor information centers — rounding out the destination experience."}},
+  {topic:"Week 3", q:"The supply constraint where hotel rooms and aircraft capacity cannot be expanded overnight is called:", opts:["Inflexibility","Perishability","Costs & Location","Elastic demand"], a:0, exp:"Inflexibility means supply is inelastic in the short run — building new infrastructure takes years, limiting fast responses to demand surges.", card:{f:"Inflexibility (supply constraint)", b:"Hotel rooms and aircraft capacity can't be expanded overnight; new infrastructure takes years to build."}},
+  {topic:"Week 3", q:"Immense upfront capital for mortgages and utilities, paired with low marginal costs per guest, describes which supply constraint?", opts:["High Fixed Costs","Perishability","Inflexibility","Elastic demand"], a:0, exp:"High Fixed Costs: immense upfront capital is needed for mortgages and utilities, with low marginal costs per additional guest.", card:{f:"High Fixed Costs (supply constraint)", b:"Immense upfront capital needed for mortgages and utilities, but low marginal cost per additional guest."}},
+  {topic:"Week 3", q:"In the 'Moments of Truth' framework, a delayed email response is given as an example touchpoint during which phase?", opts:["Booking","Arrival","Dining","Sharing"], a:0, exp:"Booking: a delayed email response during the booking phase is cited as a microscopic moment that shapes guest perception.", card:{f:"Moments of Truth — example touchpoints", b:"Booking: a delayed email reply. Arrival: lobby restroom cleanliness. Dining: a waiter's tone of voice."}},
+  {topic:"Week 3", q:"In the 5 Stages of Travel, which stage is the inspiration and research phase requiring strong digital presence and destination marketing?", opts:["Dreaming","Planning","Booking","Experiencing"], a:0, exp:"Dreaming is the inspiration and research phase, requiring a strong digital presence and attractive destination marketing.", card:{f:"Dreaming (5 Stages of Travel)", b:"Inspiration and research phase — requires a strong digital presence and attractive destination marketing."}},
+  {topic:"Week 3", q:"Which stage of the 5 Stages of Travel is the actual transaction, requiring secure payment gateways and instant confirmation?", opts:["Booking","Dreaming","Planning","Sharing"], a:0, exp:"Booking is the actual transaction, necessitating secure payment gateways and instant confirmation.", card:{f:"Booking (5 Stages of Travel)", b:"The actual transaction — needs secure payment gateways and instant confirmation."}},
+  {topic:"Week 3", q:"The 'Experiencing' stage of the customer journey focuses operationally on:", opts:["Front desk efficiency, F&B quality, and personalized guest relations","Destination marketing and digital presence","Post-trip reviews and loyalty programs","Comparing prices across websites"], a:0, exp:"Experiencing is the core physical visit, with operations focused on front desk efficiency, F&B quality, and personalized guest relations.", card:{f:"Experiencing (5 Stages of Travel)", b:"The core physical visit — operational focus on front desk efficiency, F&B quality, and personalized guest relations."}},
+  {topic:"Week 3", q:"In the Customer Personas example, what specific friction does a 'Budget Backpacker' persona face?", opts:["Struggles with costly airport transfers, needing integrated budget-friendly transit","Lack of Michelin-starred dining options","Difficulty finding luxury spas","Overly cheap accommodation options"], a:0, exp:"Budget Backpacker Friction: struggles with costly airport transfers; requires integrated, budget-friendly transit details.", card:{f:"Budget Backpacker Friction (customer persona)", b:"Struggles with costly airport transfers; needs integrated, budget-friendly transit details."}},
+  {topic:"Week 3", q:"What friction does a 'Local Family' persona typically face, per the reviewer?", opts:["Bottlenecks when properties lack child-friendly dining or accessible amenities","Trouble finding budget flights","Difficulty booking business-class seats","Lack of loyalty program enrollment"], a:0, exp:"Local Family Friction: faces bottlenecks when properties lack child-friendly dining or accessible resort amenities.", card:{f:"Local Family Friction (customer persona)", b:"Faces bottlenecks when properties lack child-friendly dining or accessible resort amenities."}},
+  {topic:"Week 3", q:"What three things must future hospitality leaders balance, per the 'Synthesizing Weeks 1-3' summary?", opts:["Preservation, value creation, and Malasakit","Profit, marketing, and staffing","Speed, cost, and quality","Aviation, maritime, and roadways"], a:0, exp:"Future industry leaders must master the balance of preservation, value creation, and Malasakit, recognizing the fragile line between commercialization and cultural protection.", card:{f:"Synthesizing Weeks 1-3", b:"Future leaders must balance preservation, value creation, and Malasakit — recognizing the fragile line between commercialization and cultural protection."}},
+  {topic:"Week 3", q:"What must sustainable tourism business models do, according to the 'Sustainable Operations' summary?", opts:["Respect local history while delivering sustainable economic value to host communities","Maximize short-term profit regardless of community impact","Avoid working with local staff","Focus solely on international tourists"], a:0, exp:"Future leaders must design business models that respect local history while delivering sustainable economic value to host communities.", card:{f:"Sustainable Operations (Foundations synthesis)", b:"Business models must respect local history while delivering sustainable economic value to host communities."}},
+  {topic:"Week 1", q:"Besides steam locomotives, what other technologies did Thomas Cook leverage to build modern travel infrastructure?", opts:["Steamships and circular notes","Airplanes and credit cards","Automobiles and highways","Telegraphs and telephones"], a:0, exp:"By leveraging steam locomotives, steamships, and circular notes, Cook established the foundation for modern travel agencies and international distribution channels.", card:{f:"Thomas Cook's modern travel infrastructure tools", b:"Steam locomotives, steamships, and circular notes — the foundation for modern travel agencies and international distribution channels."}},
+
+  // ---- ADDITIONAL COVERAGE: Week 4-5 ----
+  {topic:"Week 4-5", q:"Which course outcome involves conducting comprehensive operational evaluations of travel intermediaries and public sector transport links?", opts:["Intermediary Evaluation","Core Synthesis","Logistical Analysis","Employability Readiness"], a:0, exp:"Intermediary Evaluation: conduct comprehensive operational evaluations of travel intermediaries and public sector transport links.", card:{f:"Intermediary Evaluation (course outcome)", b:"Conducting comprehensive operational evaluations of travel intermediaries and public sector transport links."}},
+  {topic:"Week 4-5", q:"Which course outcome involves performing transport supply chain analyses to evaluate and optimize local transit networks?", opts:["Logistical Analysis","Core Synthesis","Intermediary Evaluation","Employability Readiness"], a:0, exp:"Logistical Analysis: perform comprehensive transport supply chain analyses to evaluate and optimize local transit networks.", card:{f:"Logistical Analysis (course outcome)", b:"Performing comprehensive transport supply chain analyses to evaluate and optimize local transit networks."}},
+  {topic:"Week 4-5", q:"Per the Employability Readiness outcome, future professionals must be capable of navigating micro-level operational scenarios across public sector and transport links under:", opts:["Time constraints","Unlimited budgets","No supervision","Fixed itineraries only"], a:0, exp:"Future professionals must be capable of navigating micro-level operational scenarios across public sector and transport links under time constraints.", card:{f:"Employability Readiness (Week 4-5)", b:"Being able to navigate micro-level operational scenarios across public sector and transport links under time constraints."}},
+  {topic:"Week 4-5", q:"According to 'The Risks' in reframing tourism transportation, what do delays in macro-level public infrastructure directly create?", opts:["Operational bottlenecks in the micro-level guest experience","Higher airline profits","Lower fuel costs","Increased tourist satisfaction"], a:0, exp:"Delays in macro-level public infrastructure directly create operational bottlenecks in the micro-level guest experience.", card:{f:"The Risks (Reframing Tourism Transportation)", b:"Delays in macro-level public infrastructure directly create operational bottlenecks in the micro-level guest experience."}},
+  {topic:"Week 4-5", q:"Which government function includes visa facilitation, tax incentives, and safety standards?", opts:["Regulatory Oversight","Infrastructure Development","Macro-Facilitation","Private Operations"], a:0, exp:"As a regulator, the state oversees crucial functions including visa facilitation, tax incentives, and safety standards.", card:{f:"Regulatory Oversight (Government's Dual Role)", b:"The state overseeing visa facilitation, tax incentives, and safety standards."}},
+  {topic:"Week 4-5", q:"Which government function involves dictating the construction of major international gateways and infrastructure?", opts:["Infrastructure Development","Regulatory Oversight","Macro-Facilitation","Private Operations"], a:0, exp:"As a developer, public sector policy dictates the construction of major international gateways and infrastructure.", card:{f:"Infrastructure Development (Government's Dual Role)", b:"Public sector policy dictating the construction of major international gateways and infrastructure."}},
+  {topic:"Week 4-5", q:"Even if a guest flies first class, what can severely damage the overall destination image, per the 'Infrastructure Link' point?", opts:["A poorly maintained local road leading to the final resort","A delayed in-flight meal","A slow airport Wi-Fi connection","An outdated airline app"], a:0, exp:"Even if a guest flies first class, a poorly maintained local road leading to their final resort severely damages the overall destination image.", card:{f:"Infrastructure Link (Last-Mile Journey)", b:"Even a first-class flight can't offset a poorly maintained local road leading to the final resort — it still damages the destination's image."}},
+  {topic:"Week 4-5", q:"What does successful intermodal logistics require, per 'Operational Coordination'?", opts:["Seamless ticketing, efficient baggage transfers, and strict scheduling coordination","Only one mode of transport per trip","Unlimited luggage allowances","Separate tickets for every transport leg"], a:0, exp:"Successful intermodal logistics requires seamless ticketing, efficient baggage transfers, and strict scheduling coordination across different transport hubs.", card:{f:"Operational Coordination (Intermodal Transport)", b:"Seamless ticketing, efficient baggage transfers, and strict scheduling coordination across different transport hubs."}},
+  {topic:"Week 4-5", q:"Which sustainability pillar focuses on advocating for efficient, low-emission public transit?", opts:["Eco-Conscious Mobility","Carbon Footprint Reduction","Cultural & Heritage Safeguarding","Regulatory Oversight"], a:0, exp:"Eco-Conscious Mobility: the future of micro-tourism relies on seamless, eco-conscious mobility via efficient, low-emission public transit.", card:{f:"Eco-Conscious Mobility", b:"Advocating for efficient, low-emission public transit to support the future of micro-tourism."}},
+  {topic:"Week 4-5", q:"Which required deliverable in the Transit Network assessment maps the exact routes needed to reach a local destination?", opts:["Transport supply chain analysis worksheet","Transit network evaluation reflection paper","In-class diagnostic quiz","Customer persona report"], a:0, exp:"The transport supply chain analysis worksheet is used to map required transit routes.", card:{f:"Required deliverables — Evaluating Local Transit", b:"A transport supply chain analysis worksheet (maps routes), a transit network evaluation reflection paper (analyzes efficiency), and an in-class diagnostic quiz."}},
+  {topic:"Week 4-5", q:"Which course outcome involves synthesizing core concepts of micro-level structures to understand complex operational environments?", opts:["Core Synthesis","Intermediary Evaluation","Logistical Analysis","Employability Readiness"], a:0, exp:"Core Synthesis: synthesize core concepts of micro-level structures to understand complex operational environments.", card:{f:"Core Synthesis (course outcome)", b:"Synthesizing core concepts of micro-level structures to understand complex operational environments."}},
+  {topic:"Week 4-5", q:"How does tourism logistics fundamentally differ from manufacturing logistics?", opts:["Tourism must move the consumer to the product, not the product to the consumer","Tourism has no supply chain at all","Manufacturing requires more intermediaries","Tourism logistics ignores scheduling"], a:0, exp:"Unlike manufacturing, the tourism supply chain must move the consumer to the product — managing the flow of tourists and their luggage from origin to consumption.", card:{f:"Logistics Management, defined (Tourism Logistics)", b:"Unlike manufacturing, the tourism supply chain must move the consumer to the product — managing the flow of tourists and luggage from origin to consumption."}},
+  {topic:"Week 4-5", q:"Which sustainability pillar is achieved by improving local destination capacities to reduce the industry's carbon output?", opts:["Carbon Footprint Reduction","Eco-Conscious Mobility","Cultural & Heritage Safeguarding","Regulatory Oversight"], a:0, exp:"By improving local destination capacities, tourism leaders can reduce the industry's carbon footprint.", card:{f:"Carbon Footprint Reduction", b:"Improving local destination capacities so tourism leaders can reduce the industry's overall carbon footprint."}},
+  {topic:"Week 4-5", q:"Sustainable transport networks that help preserve local heritage and strengthen community integration fall under which pillar?", opts:["Cultural & Heritage Safeguarding","Carbon Footprint Reduction","Eco-Conscious Mobility","Infrastructure Development"], a:0, exp:"These sustainable transport networks help safeguard cultural heritage and strengthen integration with local communities.", card:{f:"Cultural & Heritage Safeguarding", b:"Sustainable transport networks that help safeguard cultural heritage and strengthen integration with local communities."}},
+];
+
+let currentIdx = 0;
+let score = 0;
+let answered = [];
+let activeFilter = "All";
+
+const topics = ["All", ...Array.from(new Set(DATA.map(d => d.topic)))];
+
+function getFiltered() {
+  return activeFilter === "All" ? DATA : DATA.filter(d => d.topic === activeFilter);
+}
+
+function renderFilters() {
+  const row = document.getElementById("filterRow");
+  row.innerHTML = "";
+  topics.forEach(t => {
+    const chip = document.createElement("button");
+    chip.className = "filter-chip" + (t === activeFilter ? " active" : "");
+    chip.textContent = t;
+    chip.onclick = () => {
+      activeFilter = t;
+      currentIdx = 0;
+      score = 0;
+      answered = [];
+      flashIdx = 0;
+      renderFilters();
+      renderQuiz();
+      renderFlash();
+    };
+    row.appendChild(chip);
+  });
+}
+
+function renderQuiz() {
+  const list = getFiltered();
+  if (currentIdx >= list.length) {
+    renderResult(list);
+    return;
+  }
+  const item = list[currentIdx];
+  document.getElementById("progressLabel").textContent = `Question ${currentIdx + 1} of ${list.length}`;
+  document.getElementById("scoreLabel").textContent = `Score: ${score}`;
+  document.getElementById("progressFill").style.width = `${(currentIdx / list.length) * 100}%`;
+
+  const area = document.getElementById("quizArea");
+  area.innerHTML = `
+    <div class="card">
+      <span class="q-topic">${item.topic}</span>
+      <p class="q-prompt">${item.q}</p>
+      <div class="options" id="optsWrap"></div>
+      <div class="feedback" id="feedback"></div>
+      <div class="nav-row">
+        <button class="nav-btn ghost" id="restartBtn">Restart</button>
+        <button class="nav-btn primary" id="nextBtn" disabled>Next →</button>
+      </div>
+    </div>
+  `;
+  const optsWrap = document.getElementById("optsWrap");
+  item.opts.forEach((opt, i) => {
+    const btn = document.createElement("button");
+    btn.className = "option-btn";
+    btn.textContent = opt;
+    btn.onclick = () => selectAnswer(i, item);
+    optsWrap.appendChild(btn);
+  });
+  document.getElementById("nextBtn").onclick = () => {
+    currentIdx++;
+    renderQuiz();
+  };
+  document.getElementById("restartBtn").onclick = () => {
+    currentIdx = 0; score = 0; answered = [];
+    renderQuiz();
+  };
+}
+
+function selectAnswer(i, item) {
+  const buttons = document.querySelectorAll("#optsWrap .option-btn");
+  buttons.forEach(b => b.disabled = true);
+  const correct = i === item.a;
+  if (correct) { buttons[i].classList.add("correct"); score++; }
+  else {
+    buttons[i].classList.add("wrong");
+    buttons[item.a].classList.add("correct");
+  }
+  const fb = document.getElementById("feedback");
+  fb.classList.add("show");
+  fb.innerHTML = `<b class="${correct ? 'verdict-correct' : 'verdict-wrong'}">${correct ? "Correct!" : "Not quite."}</b> ${item.exp}`;
+  document.getElementById("nextBtn").disabled = false;
+  document.getElementById("scoreLabel").textContent = `Score: ${score}`;
+}
+
+function renderResult(list) {
+  document.getElementById("progressLabel").textContent = `Finished`;
+  document.getElementById("progressFill").style.width = `100%`;
+  document.getElementById("scoreLabel").textContent = `Score: ${score}`;
+  const pct = Math.round((score / list.length) * 100);
+  const area = document.getElementById("quizArea");
+  area.innerHTML = `
+    <div class="card result-card">
+      <div class="result-score">${score} / ${list.length}</div>
+      <div class="result-sub">${pct}% correct — ${pct >= 80 ? "Great work!" : pct >= 50 ? "Solid effort, review the misses." : "Worth another run-through."}</div>
+      <button class="nav-btn primary" id="retryBtn">Try Again</button>
+    </div>
+  `;
+  document.getElementById("retryBtn").onclick = () => {
+    currentIdx = 0; score = 0;
+    renderQuiz();
+  };
+}
+
+// Flashcards
+let flashIdx = 0;
+function renderFlash() {
+  const list = getFiltered();
+  const item = list[flashIdx];
+  document.getElementById("flashCount").textContent = `${flashIdx + 1} / ${list.length}`;
+  document.getElementById("flashFront").textContent = item.card.f;
+  document.getElementById("flashBack").textContent = item.card.b;
+  document.getElementById("flashcard").classList.remove("flipped");
+}
+
+document.getElementById("flashcard").addEventListener("click", function () {
+  this.classList.toggle("flipped");
+});
+document.getElementById("flashPrev").onclick = () => {
+  const list = getFiltered();
+  flashIdx = (flashIdx - 1 + list.length) % list.length;
+  renderFlash();
+};
+document.getElementById("flashNext").onclick = () => {
+  const list = getFiltered();
+  flashIdx = (flashIdx + 1) % list.length;
+  renderFlash();
+};
+
+// Tabs
+document.querySelectorAll(".tab-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    const tab = btn.dataset.tab;
+    document.getElementById("quizPanel").classList.toggle("active", tab === "quiz");
+    document.getElementById("flashPanel").classList.toggle("active", tab === "flash");
+  });
+});
+
+// Theme toggle
+const themeToggle = document.getElementById("themeToggle");
+let theme = null;
+themeToggle.addEventListener("click", () => {
+  theme = (theme === "dark") ? "light" : "dark";
+  document.documentElement.setAttribute("data-theme", theme);
+  themeToggle.textContent = theme === "dark" ? "☀️" : "🌙";
+});
+
+renderFilters();
+renderQuiz();
+renderFlash();
+</script>
+</body>
+</html>
